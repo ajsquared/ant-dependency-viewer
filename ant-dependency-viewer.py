@@ -8,15 +8,17 @@ def get_parser():
     parser.add_argument('-f', '--buildfile', metavar='FILE', help='Path to the buildfile to visualize', required=True)
     parser.add_argument('-p', '--png', metavar='PNG', help='Location in which to produce a PNG view')
 
+    return parser
 
-def print_target(target, depth=0):
+
+def print_target(target, target_deps, depth=0):
     indent = '  ' * depth
     print indent + target
     for dep in target_deps[target]:
-        print_target(dep, depth+1)    
+        print_target(dep, target_deps, depth+1)
 
     
-def parse_build_file(build_file_path):
+def parse_build_file(build_file_path, png_output_file):
     root = ElementTree.parse(build_file_path)
 
     target_deps = {}
@@ -26,16 +28,17 @@ def parse_build_file(build_file_path):
             deps = [d.strip() for d in t.attrib['depends'].split(',')]
         else:
             deps = []
-            name = t.attrib['name']
-            target_deps[name] = deps
+        name = t.attrib['name']
+        target_deps[name] = deps
 
 
     for t in target_deps:
         print
-        print_target(t)
+        print_target(t, target_deps)
 
-if __name__ = '__main__':
+
+if __name__ == '__main__':
     parser = get_parser()
     args = parser.parse_args()
 
-    parse_build_file(args.buildfile)
+    parse_build_file(args.buildfile, args.png)
